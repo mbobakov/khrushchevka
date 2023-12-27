@@ -1,0 +1,13 @@
+<td {{if .Addr.Pin }} hx-post="/lights/set" hx-include="this" hx-swap="outerHTML" {{ end }}>
+    <div class="{{ .Class }}-{{ if .IsOn }}on{{else}}off{{end}}"  
+    style="vertical-align: bottom; display: inherit;text-align: right;">
+        <form action="post">
+            <input type="hidden" name="board" value="{{ .Addr.Board }}">
+            <input type="hidden" name="pin" value="{{ .Addr.Pin }}">
+            <input type="hidden" name="class" value="{{ .Class }}">
+            <input type="hidden" name="is_on" value="{{ .IsOn  }}">
+            <input type="hidden" name="flat_number" value="{{ .FlatNumber }}">
+        </form>
+        <p style="margin: initial;font-size: 13px;">{{ if .FlatNumber }}{{ .FlatNumber }}{{end}}</p>
+    </div>
+</td>

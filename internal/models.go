@@ -1,19 +1,26 @@
 package internal
 
 type LightType int
+type Side int
 
 const (
-	LightTypeMaintenanceEntrance = iota
-	LightTypeMaintenanceNoManLand
-	LightTypeShortWindow1
+	LightTypeServiceEntrance = iota
+	LightTypeServiceNoManLand
+	LightTypeShortWindow
 	LightTypeLongWindow
-	LightTypeShortWindow2
-	LightTypeShortSideWindow
+	LightTypeWallStub
+
+	SideFront = iota
+	SideRight
+	SideBack
+	SideLeft
 )
 
 type Light struct {
-	Kind LightType
-	Addr LightAddress
+	Number int
+	Side   Side
+	Kind   LightType
+	Addr   LightAddress
 }
 
 type LightAddress struct {
@@ -21,12 +28,6 @@ type LightAddress struct {
 	Board uint8
 }
 
-type Appartment struct {
-	Number  int
-	Windows []Light
-}
-
 type LigtsBuildingMap struct {
-	Appartments map[int][]Appartment //floor to appartments
-	Maintenance map[int][]Light      //floor to maintance lights
+	Levels [][]Light
 }

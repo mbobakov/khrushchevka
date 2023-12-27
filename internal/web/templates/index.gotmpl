@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khrushevka web control panel</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            border: 1px solid black;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        th,
+        td {
+            padding: 0px;
+            text-align: left;
+        }
+
+        #main {
+            display: flex;
+        }
+
+        #left,
+        #frontback,
+        #front,
+        #back,
+        #right {
+            margin: 2px;
+            width: fit-content;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        #front{
+            margin-bottom: 6px;
+        }
+
+        .wall-off {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url("./static/wall.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .wall-on {
+            background-image: linear-gradient(rgba(249, 233, 4, 0.4), rgba(249, 233, 4, 0.4)), url("./static/wall.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+
+        .entrance-off {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url("./static/entrance.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .entrance-on {
+            background-image: linear-gradient(rgba(249, 233, 4, 0.4), rgba(249, 233, 4, 0.4)), url("./static/entrance.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .nomanland-off {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url("./static/nomanland.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .nomanland-on {
+            background-image: linear-gradient(rgba(249, 233, 4, 0.4), rgba(249, 233, 4, 0.4)), url("./static/nomanland.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .short-off {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url("./static/short.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .short-on {
+            background-image: linear-gradient(rgba(249, 233, 4, 0.4), rgba(249, 233, 4, 0.4)), url("./static/short.png");
+            width: 50px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .long-off {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url("./static/long.png");
+            width: 80px;
+            height: 50px;
+            background-size: 100%;
+        }
+
+        .long-on {
+            background-image: linear-gradient(rgba(249, 233, 4, 0.4), rgba(249, 233, 4, 0.4)), url("./static/long.png");
+            width: 80px;
+            height: 50px;
+            background-size: 100%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="main">
+        <h2>Manual light switcher mode</h2>
+        <div id="left">
+            <table>
+                {{ range .Left}}
+                <tr>
+                    {{ range .}}
+                    {{ template "light.gotmpl" .}}
+                    {{ end }}
+                </tr>
+                {{ end }}
+            </table>
+        </div>
+        <div id="frontback">
+            <div id="front">
+                <table>
+                    {{ range .Front}}
+                    <tr>
+                        {{ range .}}
+                        {{ template "light.gotmpl" .}}
+                        {{ end }}
+                    </tr>
+                    {{ end }}
+                </table>
+            </div>
+            <div id="back">
+                <table>
+                    {{ range .Back}}
+                    <tr>
+                        {{ range .}}
+                        {{ template "light.gotmpl" .}}
+                        {{ end }}
+                    </tr>
+                    {{ end }}
+                </table>
+            </div>
+        </div>
+        <div id="right">
+            <table>
+                {{ range .Right}}
+                <tr>
+                    {{ range .}}
+                    {{ template "light.gotmpl" .}}
+                    {{ end }}
+                </tr>
+                {{ end }}
+            </table>
+        </div>
+    </div>
+</body>
+</html>
