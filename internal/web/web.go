@@ -26,16 +26,24 @@ type LightsController interface {
 	Subscribe(chan<- internal.PinState)
 }
 
+type FlowController interface {
+	SelectFlow(ctx context.Context, name string) error
+	FlowNames() []string
+	Active() string
+}
+
 // Server deals with all incomming requests and performs calls to the various internal subsystems
 // NB: Page generated base on mapping defined in internal/mapping.go
 type Server struct {
 	indexTmpl *template.Template
 	lights    LightsController
+	flows     FlowController
 	mapping   [][]internal.Light
 	sse       *sse.Server
+	mainCtx   context.Context
 }
 
-func NewServer(l LightsController, mapping [][]internal.Light) (*Server, error) {
+func NewServer(l LightsController, f FlowController, mapping [][]internal.Light) (*Server, error) {
 	// templates
 	indexTmpl, err := template.ParseFS(templatesFS, "templates/*.gotmpl")
 	if err != nil {
@@ -50,6 +58,7 @@ func NewServer(l LightsController, mapping [][]internal.Light) (*Server, error) 
 
 	return &Server{
 		lights:    l,
+		flows:     f,
 		indexTmpl: indexTmpl,
 		sse:       sseSrv,
 		mapping:   mapping,
@@ -57,10 +66,13 @@ func NewServer(l LightsController, mapping [][]internal.Light) (*Server, error) 
 }
 
 func (s *Server) Listen(ctx context.Context, addr string) error {
+	s.mainCtx = ctx
+
 	r := chi.NewRouter()
 
 	r.Get("/", s.index)
 	r.Post("/lights/set", s.setLigts)
+	r.Put("/flows", s.setFlow)
 	r.Get("/static/*", http.FileServer(http.FS(staticFS)).ServeHTTP)
 	r.Get("/events", s.sse.HTTPHandler)
 

@@ -10,6 +10,9 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mbobakov/khrushchevka/internal"
+	"github.com/mbobakov/khrushchevka/internal/flow"
+	"github.com/mbobakov/khrushchevka/internal/flow/live"
+	"github.com/mbobakov/khrushchevka/internal/flow/manual"
 	"github.com/mbobakov/khrushchevka/internal/lights"
 	"github.com/mbobakov/khrushchevka/internal/shutdown"
 	"github.com/mbobakov/khrushchevka/internal/web"
@@ -57,7 +60,13 @@ func realMain(appctx context.Context, opts options) error {
 	}
 
 	g, ctx := errgroup.WithContext(appctx)
-	srv, err := web.NewServer(prov, internal.BuildingMap.Levels)
+
+	lf := live.Live("live")
+	mf := manual.Manual("manual")
+
+	flowCtrl := flow.NewController(lf, mf)
+
+	srv, err := web.NewServer(prov, flowCtrl, internal.BuildingMap.Levels)
 	if err != nil {
 		return fmt.Errorf("couln't initiate web server: %w", err)
 	}

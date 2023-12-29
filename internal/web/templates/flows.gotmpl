@@ -1,0 +1,8 @@
+<form>
+    {{ range .Names }}
+    <label>
+        <input type="radio" name="selected" value="{{ . }}" {{ if eq . $.Selected}} checked {{ end }}> {{ . }}
+    </label>
+    <br>
+    {{ end }}
+</form>

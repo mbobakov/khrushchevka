@@ -15,12 +15,17 @@ type lightContext struct {
 	Class      string
 	Addr       internal.LightAddress
 }
+type flowContext struct {
+	Names    []string
+	Selected string
+}
 
 type indexContext struct {
 	Front [][]*lightContext
 	Right [][]*lightContext
 	Back  [][]*lightContext
 	Left  [][]*lightContext
+	Flows *flowContext
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
@@ -33,10 +38,10 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 
 	buf := &bytes.Buffer{}
 
-	err = s.indexTmpl.Execute(buf, ictx)
+	err = s.indexTmpl.ExecuteTemplate(buf, "index.gotmpl", ictx)
 	if err != nil {
-		fmt.Fprintf(w, "couldn't execute template: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "couldn't execute template: %v", err)
 		return
 	}
 
@@ -44,7 +49,12 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) indexContext(mapping [][]internal.Light) (*indexContext, error) {
-	result := &indexContext{}
+	result := &indexContext{
+		Flows: &flowContext{
+			Names:    s.flows.FlowNames(),
+			Selected: s.flows.Active(),
+		},
+	}
 
 	for _, ll := range mapping {
 		floorFront := []*lightContext{} // Front side itis where we ends are meet it's why we have to change direction a litte bit

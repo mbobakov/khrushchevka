@@ -115,8 +115,15 @@
 </head>
 
 <body>
+    <h1>Khrushevka web control panel</h1>
     <div id="main" hx-ext="sse" sse-connect="/events?stream=lights">
-        <h2>Manual light switcher mode</h2>
+        <div style="width: 20%;">
+            <h3>Select mode:</h2>
+            <div  hx-put="/flows" hx-include="this" >
+                {{ template "flows.gotmpl" .Flows }}
+            </div>
+
+        </div>
         <div id="left">
             <table>
                 {{ range .Left}}

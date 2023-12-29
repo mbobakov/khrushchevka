@@ -51,11 +51,20 @@ func (c *Controller) SelectFlow(ctx context.Context, name string) error {
 	return fmt.Errorf("flow %s not found", name)
 }
 
-// ListFlows returns the list of available flows
-func (c *Controller) ListFlows() []string {
+// FlowNames returns the list of available flows
+func (c *Controller) FlowNames() []string {
 	var flows []string
 	for _, flow := range c.registry {
 		flows = append(flows, flow.Name())
 	}
 	return flows
+}
+
+// FlowNames returns the list of available flows
+func (c *Controller) Active() string {
+	if c.currentFlow == nil {
+		return ""
+	}
+
+	return c.currentFlow.Name()
 }
