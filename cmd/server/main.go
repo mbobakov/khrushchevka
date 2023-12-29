@@ -9,6 +9,7 @@ import (
 	"math/rand"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/mbobakov/khrushchevka/internal"
 	"github.com/mbobakov/khrushchevka/internal/lights"
 	"github.com/mbobakov/khrushchevka/internal/shutdown"
 	"github.com/mbobakov/khrushchevka/internal/web"
@@ -56,12 +57,13 @@ func realMain(appctx context.Context, opts options) error {
 	}
 
 	g, ctx := errgroup.WithContext(appctx)
-	srv, err := web.NewServer(prov)
+	srv, err := web.NewServer(prov, internal.BuildingMap.Levels)
 	if err != nil {
 		return fmt.Errorf("couln't initiate web server: %w", err)
 	}
 
 	g.Go(func() error { return srv.Listen(ctx, opts.Listen) })
+	g.Go(func() error { return srv.NotifyViaSSE(ctx) })
 
 	g.Go(func() error { return shutdown.Receive(ctx) })
 

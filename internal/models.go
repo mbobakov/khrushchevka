@@ -28,6 +28,11 @@ type LightAddress struct {
 	Board uint8
 }
 
+type PinState struct {
+	Addr LightAddress
+	IsOn bool
+}
+
 type LigtsBuildingMap struct {
 	Levels [][]Light
 }

@@ -50,6 +50,7 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 
 	pin := params.Get("pin")
 	class := params.Get("class")
+	id := params.Get("id")
 
 	err = s.lights.Set(uint8(board), pin, !isOn)
 	if err != nil {
@@ -59,6 +60,7 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lctx := &lightContext{
+		ID:         id,
 		IsOn:       !isOn,
 		FlatNumber: flat,
 		Class:      class,

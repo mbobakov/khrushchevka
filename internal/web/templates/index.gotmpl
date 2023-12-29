@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khrushevka web control panel</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
     <style>
         table {
             border-collapse: collapse;
@@ -35,7 +36,7 @@
             margin-bottom: auto;
         }
 
-        #front{
+        #front {
             margin-bottom: 6px;
         }
 
@@ -114,14 +115,19 @@
 </head>
 
 <body>
-    <div id="main">
+    <div id="main" hx-ext="sse" sse-connect="/events?stream=lights">
         <h2>Manual light switcher mode</h2>
         <div id="left">
             <table>
                 {{ range .Left}}
                 <tr>
                     {{ range .}}
-                    {{ template "light.gotmpl" .}}
+                    <td>
+                        <div {{if .Addr.Pin }} sse-swap="{{ .ID }}" hx-target="#{{.ID }}" {{ end }}> </div>
+                        <div {{if .Addr.Pin }} hx-post="/lights/set" hx-include="this" {{ end }}>
+                            {{ template "light.gotmpl" .}}
+                        </div>
+                    </td>
                     {{ end }}
                 </tr>
                 {{ end }}
@@ -133,7 +139,12 @@
                     {{ range .Front}}
                     <tr>
                         {{ range .}}
-                        {{ template "light.gotmpl" .}}
+                        <td>
+                            <div {{if .Addr.Pin }} sse-swap="{{ .ID }}" hx-target="#{{.ID }}" {{ end }}> </div>
+                            <div {{if .Addr.Pin }} hx-post="/lights/set" hx-include="this" {{ end }}>
+                                {{ template "light.gotmpl" .}}
+                            </div>
+                        </td>
                         {{ end }}
                     </tr>
                     {{ end }}
@@ -144,7 +155,12 @@
                     {{ range .Back}}
                     <tr>
                         {{ range .}}
-                        {{ template "light.gotmpl" .}}
+                        <td>
+                            <div {{if .Addr.Pin }} sse-swap="{{ .ID }}" hx-target="#{{.ID }}" {{ end }}> </div>
+                            <div {{if .Addr.Pin }} hx-post="/lights/set" hx-include="this" {{ end }}>
+                                {{ template "light.gotmpl" .}}
+                            </div>
+                        </td>
                         {{ end }}
                     </tr>
                     {{ end }}
@@ -156,7 +172,12 @@
                 {{ range .Right}}
                 <tr>
                     {{ range .}}
-                    {{ template "light.gotmpl" .}}
+                    <td>
+                        <div {{if .Addr.Pin }} sse-swap="{{ .ID }}" hx-target="#{{.ID }}" {{ end }}> </div>
+                        <div {{if .Addr.Pin }} hx-post="/lights/set" hx-include="this" {{ end }}>
+                            {{ template "light.gotmpl" .}}
+                        </div>
+                    </td>
                     {{ end }}
                 </tr>
                 {{ end }}
@@ -164,4 +185,5 @@
         </div>
     </div>
 </body>
+
 </html>

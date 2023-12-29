@@ -5,25 +5,21 @@ import (
 
 	"github.com/googolgl/go-i2c"
 	"github.com/googolgl/go-mcp23017"
+	"github.com/mbobakov/khrushchevka/internal"
 )
 
-type Side int
-
-const (
-	Maintenence Side = iota
-	Front
-	Back
-	Left
-	Right
-)
+// Callback is the callback function for the lights
+// It will be called when the light state changes by Set Command
+type Callback func(board uint8, pin string, isOn bool, err error)
 
 // Controller is the controller for the lights
 type Controller struct {
-	boards map[uint8]*mcp23017.MCP23017
+	boards   map[uint8]*mcp23017.MCP23017
+	notifyCh []chan<- internal.PinState
 }
 
 // NewController returns a new controller on the  i2c bus
-func NewController(i2cBus string, boards []uint8) (*Controller, error) {
+func NewController(i2cBus string, boards []uint8, callbacks ...Callback) (*Controller, error) {
 	if len(i2cBus) == 0 {
 		return nil, fmt.Errorf("i2cBus is empty. '/dev/i2c-0' could be a good start")
 	}

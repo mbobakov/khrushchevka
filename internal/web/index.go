@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 )
 
 type lightContext struct {
+	ID         string
 	IsOn       bool
 	FlatNumber int
 	Class      string
@@ -22,20 +24,23 @@ type indexContext struct {
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
-	ictx, err := s.indexContext(internal.BuildingMap.Levels)
+	ictx, err := s.indexContext(s.mapping)
 	if err != nil {
 		fmt.Fprintf(w, "couldn't build index context: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = s.indexTmpl.Execute(w, ictx)
+	buf := &bytes.Buffer{}
+
+	err = s.indexTmpl.Execute(buf, ictx)
 	if err != nil {
 		fmt.Fprintf(w, "couldn't execute template: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	w.Write(buf.Bytes())
 }
 
 func (s *Server) indexContext(mapping [][]internal.Light) (*indexContext, error) {
@@ -103,6 +108,7 @@ func (s *Server) lightContext(l internal.Light) (*lightContext, error) {
 		}
 	}
 	return &lightContext{
+		ID:         lightID(l),
 		IsOn:       isOn,
 		FlatNumber: l.Number,
 		Class:      cssClassByType(l.Kind),
