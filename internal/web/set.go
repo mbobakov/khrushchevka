@@ -52,7 +52,11 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 	class := params.Get("class")
 	id := params.Get("id")
 
-	err = s.lights.Set(uint8(board), pin, !isOn)
+	err = s.lights.Set(internal.LightAddress{
+		Pin:   pin,
+		Board: uint8(board),
+	}, !isOn)
+
 	if err != nil {
 		fmt.Fprintf(w, "couldn't set lights: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

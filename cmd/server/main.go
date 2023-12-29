@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"math/rand"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mbobakov/khrushchevka/internal"
@@ -47,10 +46,7 @@ func realMain(appctx context.Context, opts options) error {
 		err  error
 	)
 
-	prov = &lights.TestController{
-		IsONFunc: func(board uint8, pin string) (bool, error) { return rand.Intn(2) == 1, nil },
-		SetFunc:  func(board uint8, pin string, isON bool) error { return nil },
-	}
+	prov = lights.NewTestController()
 
 	if !opts.NoOp {
 		prov, err = lights.NewController("/dev/i2c-0", opts.Boards)
@@ -62,7 +58,7 @@ func realMain(appctx context.Context, opts options) error {
 	g, ctx := errgroup.WithContext(appctx)
 
 	lf := live.Live("live")
-	mf := manual.Manual("manual")
+	mf := manual.New(prov, internal.BuildingMap.Levels)
 
 	flowCtrl := flow.NewController(lf, mf)
 
@@ -73,6 +69,17 @@ func realMain(appctx context.Context, opts options) error {
 
 	g.Go(func() error { return srv.Listen(ctx, opts.Listen) })
 	g.Go(func() error { return srv.NotifyViaSSE(ctx) })
+	g.Go(func() error {
+		errCh := flowCtrl.SubscribeToErrors()
+		for {
+			select {
+			case err := <-errCh:
+				slog.Error("Flow error: %v", err)
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
 
 	g.Go(func() error { return shutdown.Receive(ctx) })
 

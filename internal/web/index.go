@@ -112,7 +112,7 @@ func (s *Server) lightContext(l internal.Light) (*lightContext, error) {
 	)
 
 	if l.Addr.Pin != "" {
-		isOn, err = s.lights.IsOn(l.Addr.Board, l.Addr.Pin)
+		isOn, err = s.lights.IsOn(l.Addr)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't get status of the light: %w", err)
 		}

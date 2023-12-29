@@ -56,7 +56,10 @@ func realMain(appctx context.Context, opts options) error {
 			}
 			log.Printf("---\n Board: 0x%x Pin: %s is ON\n---\n", b, pins[idx])
 
-			err := cntrl.Set(b, pins[idx], true)
+			err := cntrl.Set(internal.LightAddress{
+				Pin:   pins[idx],
+				Board: uint8(b),
+			}, true)
 			if errors.Is(err, internal.ErrNoBoardConnected) {
 				log.Printf("Board isn't connected!")
 				continue
@@ -65,7 +68,10 @@ func realMain(appctx context.Context, opts options) error {
 				return fmt.Errorf("couldn't set pin to High: %w", err)
 			}
 			time.Sleep(opts.Delay) // sleep
-			err = cntrl.Set(b, pins[idx], false)
+			err = cntrl.Set(internal.LightAddress{
+				Pin:   pins[idx],
+				Board: uint8(b),
+			}, false)
 			if err != nil {
 				return fmt.Errorf("couldn't set pin to Low: %w", err)
 			}

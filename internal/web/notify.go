@@ -16,6 +16,7 @@ func (s *Server) NotifyViaSSE(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			slog.Info("stopping SSE notifications")
 			return nil
 		case pin := <-ch:
 			slog.Info("got pin state", slog.Any("pin", pin))

@@ -1,38 +1,56 @@
 package lights
 
-import "github.com/mbobakov/khrushchevka/internal"
+import (
+	"log/slog"
+	"sync"
+
+	"github.com/mbobakov/khrushchevka/internal"
+)
 
 // TestController is a fake implementation for development without real board
 // TestController always returns no error for the set command
 type TestController struct {
-	IsONFunc func(board uint8, pin string) (bool, error)
-	SetFunc  func(board uint8, pin string, isON bool) error
-	NotifyCh []chan<- internal.PinState
+	notifyCh []chan<- internal.PinState
+
+	mu    sync.RWMutex
+	state map[internal.LightAddress]bool
 }
 
-func (c *TestController) Set(board uint8, pin string, isON bool) error {
+func NewTestController() *TestController {
+	return &TestController{
+		state: make(map[internal.LightAddress]bool),
+	}
+}
+
+func (c *TestController) Set(addr internal.LightAddress, isON bool) error {
+	l := slog.With("controller", "test")
+
 	defer func() {
-		for _, ch := range c.NotifyCh {
-			select {
-			case ch <- internal.PinState{
+		for _, ch := range c.notifyCh {
+			ch <- internal.PinState{
 				Addr: internal.LightAddress{
-					Board: board,
-					Pin:   pin,
+					Board: addr.Board,
+					Pin:   addr.Pin,
 				},
 				IsOn: isON,
-			}: // do nothing
-			default: // do nothing
 			}
 		}
 	}()
 
-	return c.SetFunc(board, pin, isON)
+	l.Info("setting light", slog.Int("board", int(addr.Board)), slog.String("pin", addr.Pin), slog.Bool("isON", isON))
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.state[addr] = isON
+
+	return nil
 }
 
-func (c *TestController) IsOn(board uint8, pin string) (bool, error) {
-	return c.IsONFunc(board, pin)
+func (c *TestController) IsOn(addr internal.LightAddress) (bool, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.state[addr], nil
 }
 
 func (c *TestController) Subscribe(ch chan<- internal.PinState) {
-	c.NotifyCh = append(c.NotifyCh, ch)
+	c.notifyCh = append(c.notifyCh, ch)
 }

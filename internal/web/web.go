@@ -21,8 +21,8 @@ var templatesFS embed.FS
 var staticFS embed.FS
 
 type LightsController interface {
-	Set(board uint8, pin string, isON bool) error
-	IsOn(board uint8, pin string) (bool, error)
+	Set(addr internal.LightAddress, isON bool) error
+	IsOn(addr internal.LightAddress) (bool, error)
 	Subscribe(chan<- internal.PinState)
 }
 

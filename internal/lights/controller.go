@@ -8,10 +8,6 @@ import (
 	"github.com/mbobakov/khrushchevka/internal"
 )
 
-// Callback is the callback function for the lights
-// It will be called when the light state changes by Set Command
-type Callback func(board uint8, pin string, isOn bool, err error)
-
 // Controller is the controller for the lights
 type Controller struct {
 	boards   map[uint8]*mcp23017.MCP23017
@@ -19,7 +15,7 @@ type Controller struct {
 }
 
 // NewController returns a new controller on the  i2c bus
-func NewController(i2cBus string, boards []uint8, callbacks ...Callback) (*Controller, error) {
+func NewController(i2cBus string, boards []uint8) (*Controller, error) {
 	if len(i2cBus) == 0 {
 		return nil, fmt.Errorf("i2cBus is empty. '/dev/i2c-0' could be a good start")
 	}
