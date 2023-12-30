@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/mbobakov/khrushchevka/internal"
 )
@@ -45,7 +46,7 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(buf.Bytes())
+	w.Write(buf.Bytes()) //nolint: errcheck
 }
 
 func (s *Server) indexContext(mapping [][]internal.Light) (*indexContext, error) {
@@ -84,6 +85,11 @@ func (s *Server) indexContext(mapping [][]internal.Light) (*indexContext, error)
 		result.Back = append(result.Back, floorBack)
 		result.Left = append(result.Left, floorLeft)
 	}
+
+	slices.Reverse(result.Front)
+	slices.Reverse(result.Right)
+	slices.Reverse(result.Back)
+	slices.Reverse(result.Left)
 
 	return result, nil
 }

@@ -34,14 +34,14 @@ func (c *Controller) Set(addr internal.LightAddress, isON bool) (err error) {
 	if isON {
 		err = drv.Set(mcp23017.Pins{addr.Pin}).HIGH()
 		if err != nil {
-			return fmt.Errorf("Couldn't setup pin '%s' to High on '%s'", addr.Pin, addr.Board)
+			return fmt.Errorf("Couldn't setup pin '%s' to High on '%d'", addr.Pin, addr.Board)
 		}
 		return nil
 	}
 
 	err = drv.Set(mcp23017.Pins{addr.Pin}).LOW()
 	if err != nil {
-		return fmt.Errorf("Couldn't setup pin '%s' to Low on '%s'", addr.Pin, addr.Board)
+		return fmt.Errorf("Couldn't setup pin '%s' to Low on '%d'", addr.Pin, addr.Board)
 	}
 
 	return nil
@@ -56,12 +56,12 @@ func (c *Controller) IsOn(addr internal.LightAddress) (bool, error) {
 
 	res, err := drv.Get(mcp23017.Pins{addr.Pin})
 	if err != nil {
-		return false, fmt.Errorf("Couldn't get value for the pin '%s' on '%s'", addr.Pin, addr.Board)
+		return false, fmt.Errorf("Couldn't get value for the pin '%s' on '%d'", addr.Pin, addr.Board)
 	}
 
 	val, ok := res[addr.Pin]
 	if !ok {
-		return false, fmt.Errorf("undefined value for the pin '%s' on '%s'", addr.Pin, addr.Board)
+		return false, fmt.Errorf("undefined value for the pin '%s' on '%d'", addr.Pin, addr.Board)
 	}
 
 	return val > 0, nil

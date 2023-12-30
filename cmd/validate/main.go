@@ -1,4 +1,4 @@
-package validate
+package main
 
 import (
 	"context"
@@ -58,7 +58,7 @@ func realMain(appctx context.Context, opts options) error {
 
 			err := cntrl.Set(internal.LightAddress{
 				Pin:   pins[idx],
-				Board: uint8(b),
+				Board: b,
 			}, true)
 			if errors.Is(err, internal.ErrNoBoardConnected) {
 				log.Printf("Board isn't connected!")
@@ -70,7 +70,7 @@ func realMain(appctx context.Context, opts options) error {
 			time.Sleep(opts.Delay) // sleep
 			err = cntrl.Set(internal.LightAddress{
 				Pin:   pins[idx],
-				Board: uint8(b),
+				Board: b,
 			}, false)
 			if err != nil {
 				return fmt.Errorf("couldn't set pin to Low: %w", err)

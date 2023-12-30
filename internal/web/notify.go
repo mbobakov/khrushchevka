@@ -19,7 +19,7 @@ func (s *Server) NotifyViaSSE(ctx context.Context) error {
 			slog.Info("stopping SSE notifications")
 			return nil
 		case pin := <-ch:
-			slog.Info("got pin state", slog.Any("pin", pin))
+			slog.Debug("got pin state", slog.Any("pin", pin))
 			lctx, err := s.lightContextByPinState(pin)
 			if err != nil {
 				slog.Error("couldn't get light context", slog.Any("err", err))

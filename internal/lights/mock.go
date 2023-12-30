@@ -37,7 +37,7 @@ func (c *TestController) Set(addr internal.LightAddress, isON bool) error {
 		}
 	}()
 
-	l.Info("setting light", slog.Int("board", int(addr.Board)), slog.String("pin", addr.Pin), slog.Bool("isON", isON))
+	l.Debug("setting light", slog.Int("board", int(addr.Board)), slog.String("pin", addr.Pin), slog.Bool("isON", isON))
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.state[addr] = isON

@@ -19,9 +19,10 @@ import (
 )
 
 type options struct {
-	Listen string  `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
-	Boards []uint8 `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
-	NoOp   bool    `long:"noop" env:"NOOP" description:"If true fake board will be used"`
+	Listen string       `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
+	Boards []uint8      `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
+	NoOp   bool         `long:"noop" env:"NOOP" description:"If true fake board will be used"`
+	Live   live.Options `group:"live" namespace:"live" env-namespace:"LIVE"`
 }
 
 func main() {
@@ -57,7 +58,11 @@ func realMain(appctx context.Context, opts options) error {
 
 	g, ctx := errgroup.WithContext(appctx)
 
-	lf := live.Live("live")
+	lf := live.New(
+		prov,
+		internal.BuildingMap.Levels,
+		opts.Live,
+	)
 	mf := manual.New(prov, internal.BuildingMap.Levels)
 
 	flowCtrl := flow.NewController(lf, mf)
@@ -83,7 +88,7 @@ func realMain(appctx context.Context, opts options) error {
 
 	g.Go(func() error { return shutdown.Receive(ctx) })
 
-	slog.Info("Service started and listens on '%s'", opts.Listen)
+	slog.Info("Service started and listen", "addr", opts.Listen)
 	err = g.Wait()
 
 	if err != nil && errors.Is(err, shutdown.ErrGracefulShutdown) {
