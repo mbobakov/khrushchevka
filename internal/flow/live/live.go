@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"strings"
 	"sync"
 	"time"
 
@@ -277,11 +278,16 @@ func (l *Live) windowCycle(ctx context.Context, flat int, addr internal.LightAdd
 		changesLeft--
 		isOn = !isOn
 	}
+
+	programToLog := strings.Builder{}
+	for _, p := range program {
+		programToLog.WriteString(fmt.Sprintf(":for %s is %t:", p.duration, p.isOn))
+	}
 	l.log.Info("program for the flat window",
 		slog.Int("flat", flat),
 		slog.Int("board", int(addr.Board)),
 		slog.String("pin", addr.Pin),
-		slog.Any("program", program),
+		slog.Any("program", programToLog.String()),
 	)
 	// Start executing program
 	timer := time.NewTimer(l.opts.FlatTTL)

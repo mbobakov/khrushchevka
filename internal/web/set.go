@@ -32,16 +32,8 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flatRaw := params.Get("flat_number")
-	flat, err := strconv.Atoi(flatRaw)
-	if err != nil {
-		fmt.Fprintf(w, "couldn't read flat parameter: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	isOnRaw := params.Get("is_on")
-	isOn, err := strconv.ParseBool(isOnRaw)
+	mustOn, err := strconv.ParseBool(isOnRaw)
 	if err != nil {
 		fmt.Fprintf(w, "couldn't read isOn parameter: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -49,13 +41,30 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pin := params.Get("pin")
-	class := params.Get("class")
-	id := params.Get("id")
+
+	light := internal.Light{}
+
+SEARCH:
+	for _, lvl := range s.mapping {
+		for _, l := range lvl {
+			if l.Addr.Board == uint8(board) && l.Addr.Pin == pin {
+				light = l
+				break SEARCH
+			}
+		}
+
+	}
+
+	if light.Addr.Board == 0 {
+		fmt.Fprintf(w, "couldn't find light with board %d and pin %s", board, pin)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	err = s.lights.Set(internal.LightAddress{
 		Pin:   pin,
 		Board: uint8(board),
-	}, !isOn)
+	}, mustOn)
 
 	if err != nil {
 		fmt.Fprintf(w, "couldn't set lights: %v", err)
@@ -63,15 +72,11 @@ func (s *Server) setLigts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lctx := &lightContext{
-		ID:         id,
-		IsOn:       !isOn,
-		FlatNumber: flat,
-		Class:      class,
-		Addr: internal.LightAddress{
-			Pin:   pin,
-			Board: uint8(board),
-		},
+	lctx, err := s.lightContext(light)
+	if err != nil {
+		fmt.Fprintf(w, "couldn't build light context: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	if err != nil {

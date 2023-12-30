@@ -1,12 +1,9 @@
 <div id="{{ .ID }}" class="{{ .Class }}-{{ if .IsOn }}on{{else}}off{{end}}"
     style="vertical-align: bottom; display: inherit;text-align: right;">
     <form action="post">
-        <input type="hidden" name="id" value="{{ .ID }}">
         <input type="hidden" name="board" value="{{ .Addr.Board }}">
         <input type="hidden" name="pin" value="{{ .Addr.Pin }}">
-        <input type="hidden" name="class" value="{{ .Class }}">
-        <input type="hidden" name="is_on" value="{{ .IsOn  }}">
-        <input type="hidden" name="flat_number" value="{{ .FlatNumber }}">
+        <input type="hidden" name="is_on" value="{{ not .IsOn  }}">
     </form>
     <p style="margin: initial;font-size: 13px;">{{ if .FlatNumber }}{{ .FlatNumber }}{{end}}</p>
 </div>
