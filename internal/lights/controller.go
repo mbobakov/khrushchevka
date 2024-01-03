@@ -8,6 +8,12 @@ import (
 	"github.com/mbobakov/khrushchevka/internal"
 )
 
+type ControllerI interface {
+	Set(addr internal.LightAddress, isON bool) error
+	IsOn(addr internal.LightAddress) (bool, error)
+	Subscribe(chan<- internal.PinState)
+}
+
 // Controller is the controller for the lights
 type Controller struct {
 	boards   map[uint8]*mcp23017.MCP23017

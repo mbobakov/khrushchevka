@@ -1,8 +1,9 @@
-<form>
+<div class="card-body" hx-put="/flows" hx-include="div[hx-put='/flows'] input:checked" >
     {{ range .Names }}
-    <label>
-        <input type="radio" name="selected" value="{{ . }}" {{ if eq . $.Selected}} checked {{ end }}> {{ . }}
-    </label>
-    <br>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" role="switch" name="selected" value="{{ . }}" id="switch{{ . }}" {{ if eq . $.Selected}} checked {{ end }}>
+        <label class="form-check-label" for="switch{{ . }}">{{ . }}</label>
+        <br>
+    </div>
     {{ end }}
-</form>
+</div>

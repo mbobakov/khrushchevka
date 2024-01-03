@@ -12,17 +12,22 @@ import (
 	"github.com/mbobakov/khrushchevka/internal/flow"
 	"github.com/mbobakov/khrushchevka/internal/flow/live"
 	"github.com/mbobakov/khrushchevka/internal/flow/manual"
+	"github.com/mbobakov/khrushchevka/internal/flow/replay"
 	"github.com/mbobakov/khrushchevka/internal/lights"
 	"github.com/mbobakov/khrushchevka/internal/shutdown"
+	"github.com/mbobakov/khrushchevka/internal/snapshot/file"
 	"github.com/mbobakov/khrushchevka/internal/web"
+	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
 
 type options struct {
-	Listen string       `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
-	Boards []uint8      `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
-	NoOp   bool         `long:"noop" env:"NOOP" description:"If true fake board will be used"`
-	Live   live.Options `group:"live" namespace:"live" env-namespace:"LIVE"`
+	Listen string         `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
+	Boards []uint8        `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
+	NoOp   bool           `long:"noop" env:"NOOP" description:"If true fake board will be used"`
+	Live   live.Options   `group:"live" namespace:"live" env-namespace:"LIVE"`
+	Replay replay.Options `group:"replay" namespace:"replay" env-namespace:"REPLAY"`
+	Snap   file.Options   `group:"snap" namespace:"snap" env-namespace:"SNAP"`
 }
 
 func main() {
@@ -43,7 +48,7 @@ func main() {
 
 func realMain(appctx context.Context, opts options) error {
 	var (
-		prov web.LightsController
+		prov lights.ControllerI
 		err  error
 	)
 
@@ -58,16 +63,19 @@ func realMain(appctx context.Context, opts options) error {
 
 	g, ctx := errgroup.WithContext(appctx)
 
+	snap := file.New(opts.Snap, afero.NewOsFs(), prov, internal.BuildingMap.Levels)
+
 	lf := live.New(
 		prov,
 		internal.BuildingMap.Levels,
 		opts.Live,
 	)
 	mf := manual.New(prov, internal.BuildingMap.Levels)
+	rep := replay.New(snap, opts.Replay)
 
-	flowCtrl := flow.NewController(lf, mf)
+	flowCtrl := flow.NewController(lf, mf, rep)
 
-	srv, err := web.NewServer(prov, flowCtrl, internal.BuildingMap.Levels)
+	srv, err := web.NewServer(prov, flowCtrl, snap, internal.BuildingMap.Levels)
 	if err != nil {
 		return fmt.Errorf("couln't initiate web server: %w", err)
 	}

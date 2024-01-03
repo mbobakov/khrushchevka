@@ -26,8 +26,8 @@ func (s *Server) setFlow(w http.ResponseWriter, r *http.Request) {
 
 	err = s.flows.SelectFlow(s.mainCtx, active)
 	if err != nil {
-		fmt.Fprintf(w, "couldn't select Flow: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "couldn't select Flow: %v", err)
 		return
 	}
 

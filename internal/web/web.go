@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/mbobakov/khrushchevka/internal"
+	"github.com/mbobakov/khrushchevka/internal/lights"
 	"github.com/r3labs/sse"
 )
 
@@ -20,30 +21,29 @@ var templatesFS embed.FS
 //go:embed static/*
 var staticFS embed.FS
 
-type LightsController interface {
-	Set(addr internal.LightAddress, isON bool) error
-	IsOn(addr internal.LightAddress) (bool, error)
-	Subscribe(chan<- internal.PinState)
-}
-
 type FlowController interface {
 	SelectFlow(ctx context.Context, name string) error
 	FlowNames() []string
 	Active() string
 }
 
+type Snapshoter interface {
+	Snapshot() error
+}
+
 // Server deals with all incomming requests and performs calls to the various internal subsystems
 // NB: Page generated base on mapping defined in internal/mapping.go
 type Server struct {
 	indexTmpl *template.Template
-	lights    LightsController
+	lights    lights.ControllerI
 	flows     FlowController
+	snap      Snapshoter
 	mapping   [][]internal.Light
 	sse       *sse.Server
 	mainCtx   context.Context
 }
 
-func NewServer(l LightsController, f FlowController, mapping [][]internal.Light) (*Server, error) {
+func NewServer(l lights.ControllerI, f FlowController, snap Snapshoter, mapping [][]internal.Light) (*Server, error) {
 	// templates
 	indexTmpl, err := template.ParseFS(templatesFS, "templates/*.gotmpl")
 	if err != nil {
@@ -62,6 +62,7 @@ func NewServer(l LightsController, f FlowController, mapping [][]internal.Light)
 		indexTmpl: indexTmpl,
 		sse:       sseSrv,
 		mapping:   mapping,
+		snap:      snap,
 	}, nil
 }
 
@@ -72,6 +73,7 @@ func (s *Server) Listen(ctx context.Context, addr string) error {
 
 	r.Get("/", s.index)
 	r.Post("/lights/set", s.setLigts)
+	r.Post("/lights/snapshot", s.snapshot)
 	r.Put("/flows", s.setFlow)
 	r.Get("/static/*", http.FileServer(http.FS(staticFS)).ServeHTTP)
 	r.Get("/events", s.sse.HTTPHandler)
