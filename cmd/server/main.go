@@ -71,7 +71,7 @@ func realMain(appctx context.Context, opts options) error {
 		opts.Live,
 	)
 	mf := manual.New(prov, internal.BuildingMap.Levels)
-	rep := replay.New(snap, opts.Replay)
+	rep := replay.New(afero.NewOsFs(), prov, opts.Replay)
 
 	flowCtrl := flow.NewController(lf, mf, rep)
 
