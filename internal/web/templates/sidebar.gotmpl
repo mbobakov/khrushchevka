@@ -1,0 +1,13 @@
+<div class="sidebar border border-right col-2 bg-body-secondary bg-gradient">
+    <ul class="nav flex-column nav-pills">
+        <li class="nav-item">
+            <a class="nav-link {{ if eq .Active "index" }} active {{ end }}" aria-current="page" href="/">Lights</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ if eq .Active "validate" }} active {{ end }}" aria-current="page" href="/validate">Validate</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" href="#">Monitoring</a>
+        </li>
+    </ul>
+</div>

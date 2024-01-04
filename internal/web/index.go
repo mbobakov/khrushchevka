@@ -22,11 +22,12 @@ type flowContext struct {
 }
 
 type indexContext struct {
-	Front [][]*lightContext
-	Right [][]*lightContext
-	Back  [][]*lightContext
-	Left  [][]*lightContext
-	Flows *flowContext
+	Active string
+	Front  [][]*lightContext
+	Right  [][]*lightContext
+	Back   [][]*lightContext
+	Left   [][]*lightContext
+	Flows  *flowContext
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +52,7 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) indexContext(mapping [][]internal.Light) (*indexContext, error) {
 	result := &indexContext{
+		Active: "index",
 		Flows: &flowContext{
 			Names:    s.flows.FlowNames(),
 			Selected: s.flows.Active(),
