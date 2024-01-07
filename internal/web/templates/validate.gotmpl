@@ -1,0 +1,20 @@
+{{ template "header.gotmpl" . }}
+
+<body>
+    <div class="container-fluid min-vh-100 d-flex flex-column p-0">
+        {{ template "common.gotmpl" . }}
+        <div class="row flex-grow-1">
+            {{ template "sidebar.gotmpl" . }}
+            <div class="col-10 bg-body-tertiary">
+                <div class="row p-2 border-bottom d-flex align-items-center">
+                    <h2 class="h2">Manual Validation</h1>
+                </div>
+                <div hx-post="/validate" hx-target=".validate-replace" hx-include=".validate-send">
+                    <div clafss="row validate-replace">
+                        {{ template "validate-form.gotmpl" . }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

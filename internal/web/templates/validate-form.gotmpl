@@ -1,0 +1,29 @@
+<div class="col-2">
+    <p>Please select a board to validate:</p>
+    <select class="form-select validate-send" name="board" class="" id="boardSelect" size="{{len .Boards}}"
+        aria-label="Select the board">
+        {{ range .Boards }}
+        <option value="{{ .ID }}" {{ if eq .ID $.ActiveBoard }} selected {{ end }} >{{ .View }}</option>
+        {{ end }}
+    </select>
+</div>
+{{ if .ActiveBoard }}
+<div class="col-1">
+    {{ range .BPins }}
+    <div class="form-check form-switch form-check-reverse">
+        <input class="validate-send form-check-input" name="pin" value="{{ .ID }}" type="checkbox" role="switch"
+            id="switch{{ .ID }}" {{ if .IsOn }} checked {{ end }}>
+        <label class="form-check-label" for="switch{{ .ID }}">{{ .ID }}</label>
+    </div>
+    {{ end }}
+</div>
+<div class="col-9">
+    {{ range .APins }}
+    <div class="form-check form-switch">
+        <input class="validate-send form-check-input" name="pin" value="{{ .ID }}" type="checkbox" role="switch"
+            id="switch{{ .ID }}" {{ if .IsOn }} checked {{ end }}>
+        <label class="form-check-label" for="switch{{ .ID }}">{{ .ID }}</label>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

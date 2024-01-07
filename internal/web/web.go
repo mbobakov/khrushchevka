@@ -34,13 +34,14 @@ type Snapshoter interface {
 // Server deals with all incomming requests and performs calls to the various internal subsystems
 // NB: Page generated base on mapping defined in internal/mapping.go
 type Server struct {
-	indexTmpl *template.Template
-	lights    lights.ControllerI
-	flows     FlowController
-	snap      Snapshoter
-	mapping   [][]internal.Light
-	sse       *sse.Server
-	mainCtx   context.Context
+	indexTmpl           *template.Template
+	lights              lights.ControllerI
+	flows               FlowController
+	snap                Snapshoter
+	mapping             [][]internal.Light
+	sse                 *sse.Server
+	mainCtx             context.Context
+	validateSelectBoard uint8
 }
 
 func NewServer(l lights.ControllerI, f FlowController, snap Snapshoter, mapping [][]internal.Light) (*Server, error) {
@@ -72,10 +73,17 @@ func (s *Server) Listen(ctx context.Context, addr string) error {
 	r := chi.NewRouter()
 
 	r.Get("/", s.index)
+
+	r.Get("/validate", s.validate)
+	r.Post("/validate", s.validatePost)
+
 	r.Post("/lights/set", s.setLigts)
 	r.Post("/lights/snapshot", s.snapshot)
+
 	r.Put("/flows", s.setFlow)
+
 	r.Get("/static/*", http.FileServer(http.FS(staticFS)).ServeHTTP)
+
 	r.Get("/events", s.sse.HTTPHandler)
 
 	server := http.Server{

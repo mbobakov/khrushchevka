@@ -1,43 +1,42 @@
 {{ template "header.gotmpl" . }}
 <body>
-{{ template "common.gotmpl" . }}
+    <div class="container-fluid min-vh-100 d-flex flex-column p-0">
+        {{ template "common.gotmpl" . }}
+        <div class="row flex-grow-1">
+            {{ template "sidebar.gotmpl" . }}
 
-    <div class="row">
-        {{ template "sidebar.gotmpl" . }}
-
-        <div hx-ext="sse" sse-connect="/events?stream=lights" class="col-10 bg-body-tertiary">
-            <div class="row p-2 border-bottom d-flex align-items-center">
-                <h2 class="h2" style="width: fit-content;height: fit-content;">Lights Control</h1>
-                    <button hx-post="/lights/snapshot" hx-swap="none" type="button" style="width: fit-content; height: fit-content;"
-                        class="btn btn-primary">Snapshot</button>
-            </div>
-
-            <div class="row position-relative m-2">
-                <div class="card overflow-visible p-0 position-absolute" style="width: 10rem;">
-                    <h5 class="card-header p-1">Mode</h5>
-                    <div class="card-body" hx-put="/flows" hx-include="div[hx-put='/flows'] input:checked" >
-                        {{ template "flows.gotmpl" .Flows }}
-                    </div>
+            <div hx-ext="sse" sse-connect="/events?stream=lights" class="col-10 bg-body-tertiary">
+                <div class="row p-2 border-bottom d-flex align-items-center">
+                    <h2 class="h2" style="width: fit-content;height: fit-content;">Lights Control</h1>
+                        <button hx-post="/lights/snapshot" hx-swap="none" type="button"
+                            style="width: fit-content; height: fit-content;" class="btn btn-primary">Snapshot</button>
                 </div>
 
-                <div class="col-auto p-2 d-flex align-items-center">
-                    {{ template "table.gotmpl" .Left }}
-                </div>
-                <div class="col-auto">
-                    <div class="row">
-                        {{ template "table.gotmpl" .Front }}
+                <div class="row position-relative m-2">
+                    <div class="card overflow-visible p-0 position-absolute" style="width: 10rem;">
+                        <h5 class="card-header p-1">Mode</h5>
+                        <div class="card-body" hx-put="/flows" hx-include="div[hx-put='/flows'] input:checked">
+                            {{ template "flows.gotmpl" .Flows }}
+                        </div>
                     </div>
-                    <div class="row pt-2">
-                        {{ template "table.gotmpl" .Back }}
+
+                    <div class="col-auto p-2 d-flex align-items-center">
+                        {{ template "table.gotmpl" .Left }}
                     </div>
-                </div>
-                <div class="col-auto p-2 d-flex align-items-center">
-                    {{ template "table.gotmpl" .Right }}
+                    <div class="col-auto">
+                        <div class="row">
+                            {{ template "table.gotmpl" .Front }}
+                        </div>
+                        <div class="row pt-2">
+                            {{ template "table.gotmpl" .Back }}
+                        </div>
+                    </div>
+                    <div class="col-auto p-2 d-flex align-items-center">
+                        {{ template "table.gotmpl" .Right }}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 </body>
-
 </html>

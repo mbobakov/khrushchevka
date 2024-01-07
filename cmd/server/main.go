@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"strconv"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mbobakov/khrushchevka/internal"
@@ -23,7 +24,7 @@ import (
 
 type options struct {
 	Listen string         `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
-	Boards []uint8        `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
+	Boards []string       `long:"boards" env:"BOARDS" default:"0x20,0x21,0x22,0x23,0x24,0x25" env-delim:"," description:"Boards to validate"`
 	NoOp   bool           `long:"noop" env:"NOOP" description:"If true fake board will be used"`
 	Live   live.Options   `group:"live" namespace:"live" env-namespace:"LIVE"`
 	Replay replay.Options `group:"replay" namespace:"replay" env-namespace:"REPLAY"`
@@ -52,10 +53,20 @@ func realMain(appctx context.Context, opts options) error {
 		err  error
 	)
 
-	prov = lights.NewTestController()
+	// convert string to uint8
+	boards := make([]uint8, 0, len(opts.Boards))
+	for _, board := range opts.Boards {
+		decimalValue, err := strconv.ParseInt(board, 16, 8)
+		if err != nil {
+			return fmt.Errorf("couldn't parse board '%s': %w", board, err)
+		}
+		boards = append(boards, uint8(decimalValue))
+	}
+
+	prov = lights.NewTestController(boards)
 
 	if !opts.NoOp {
-		prov, err = lights.NewController("/dev/i2c-0", opts.Boards)
+		prov, err = lights.NewController("/dev/i2c-0", boards)
 		if err != nil {
 			return fmt.Errorf("couldn't initiate controller for the boards: %w", err)
 		}
@@ -87,7 +98,9 @@ func realMain(appctx context.Context, opts options) error {
 		for {
 			select {
 			case err := <-errCh:
-				slog.Error("Flow error: %v", err)
+				if err != nil {
+					slog.Error("Flow error: %v", err)
+				}
 			case <-ctx.Done():
 				return nil
 			}

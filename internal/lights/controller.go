@@ -2,17 +2,22 @@ package lights
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/googolgl/go-i2c"
 	"github.com/googolgl/go-mcp23017"
 	"github.com/mbobakov/khrushchevka/internal"
+	"golang.org/x/exp/maps"
 )
 
 type ControllerI interface {
 	Set(addr internal.LightAddress, isON bool) error
 	IsOn(addr internal.LightAddress) (bool, error)
 	Subscribe(chan<- internal.PinState)
+	Boards() []uint8
 }
+
+var _ ControllerI = (*Controller)(nil)
 
 // Controller is the controller for the lights
 type Controller struct {
@@ -35,6 +40,8 @@ func NewController(i2cBus string, boards []uint8) (*Controller, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could open mcp23017 for board %d: %w", addr, err)
 		}
+
+		slog.Info("opened mcp23017", slog.Int("board", int(addr)), slog.String("hex", fmt.Sprintf("0x%x", addr)))
 
 		cntrl.boards[addr] = mcp
 	}
@@ -64,4 +71,8 @@ func openMCP23017(addr uint8, i2cBus string) (*mcp23017.MCP23017, error) {
 	}
 
 	return mcp, nil
+}
+
+func (c *Controller) Boards() []uint8 {
+	return maps.Keys(c.boards)
 }
