@@ -13,16 +13,18 @@ import (
 func (s *Server) NotifyViaSSE(ctx context.Context) error {
 	ch := make(chan internal.PinState)
 	s.lights.Subscribe(ch)
+	log := slog.With(slog.String("subsystem", "sse"))
+	log.Info("starting SSE notifications")
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping SSE notifications")
+			log.Info("stopping SSE notifications")
 			return nil
 		case pin := <-ch:
-			slog.Debug("got pin state", slog.Any("pin", pin))
+			log.Debug("got pin state", slog.Any("pin", pin))
 			lctx, err := s.lightContextByPinState(pin)
 			if err != nil {
-				slog.Error("couldn't get light context", slog.Any("err", err))
+				log.Error("couldn't get light context", slog.Any("err", err))
 				continue
 			}
 			buf := &bytes.Buffer{}
@@ -30,7 +32,7 @@ func (s *Server) NotifyViaSSE(ctx context.Context) error {
 			err = s.indexTmpl.ExecuteTemplate(buf, "light.gotmpl", lctx)
 
 			if err != nil {
-				slog.Error("couldn't execute template", slog.Any("err", err))
+				log.Error("couldn't execute template", slog.Any("err", err))
 				continue
 			}
 
@@ -59,5 +61,5 @@ func (s *Server) lightContextByPinState(pin internal.PinState) (*lightContext, e
 		}
 	}
 
-	return nil, fmt.Errorf("couldn't find light with board '%d' pin %s", pin.Addr.Board, pin.Addr.Pin)
+	return nil, fmt.Errorf("light with board '%d' pin %s is not presented in the mapping", pin.Addr.Board, pin.Addr.Pin)
 }

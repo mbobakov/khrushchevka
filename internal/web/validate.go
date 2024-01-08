@@ -82,12 +82,18 @@ func (s *Server) validatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pinsToOn := params["pin"]
+	pinsOnMap := map[string]bool{}
+	for _, p := range pinsToOn {
+		pinsOnMap[p] = true
+	}
+
 	if s.validateSelectBoard == 0 || s.validateSelectBoard == uint8(board) {
-		for _, p := range pinsToOn {
+		pins := []string{"A7", "A6", "A5", "A4", "A3", "A2", "A1", "A0", "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7"}
+		for _, p := range pins {
 			err = s.lights.Set(internal.LightAddress{
 				Pin:   p,
 				Board: uint8(board),
-			}, true)
+			}, pinsOnMap[p])
 
 			if err != nil {
 				fmt.Fprintf(w, "couldn't set pin %s on board 0x%x: %v", p, board, err)
