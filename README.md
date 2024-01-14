@@ -30,13 +30,13 @@ The simplest mode allows you to manually control lights in rooms and the corrido
 Lights operate automatically, simulating typical daily life with a touch of randomness.
 ![livemode](./docs/live_mode.gif)
 
-### Repeat
+### Replay
 On the top of the page there is a button "snapshot". 
 While in the manual mode you could construct a lighting pattern and save it as a snapshot. 
-Then you could switch to the repeat mode and the snapshot will be repeated with 100ms delay between the steps.
-![repeat mode](./docs/repeat_mode.gif)
+Then you could switch to the replay mode and the snapshot will be repeated with 100ms delay between the steps.
+![replay mode](./docs/replay_mode.gif)
 
 ## Validate
 The validate mode is used to check the wiring of the lights.
 You could select a board and then click on the pin to turn it on.
-![validate mode](./docs/validate_mode.gif)
+![validate mode](./docs/validate.gif)
