@@ -7,6 +7,7 @@ import (
 	"log"
 	"log/slog"
 	"strconv"
+	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mbobakov/khrushchevka/internal"
@@ -24,7 +25,7 @@ import (
 
 type options struct {
 	Listen string         `long:"listen" env:"LISTEN" default:":8080" description:"Listen address"`
-	Boards []string       `long:"boards" env:"BOARDS" default:"0x20,0x21,0x22,0x23,0x24,0x25" env-delim:"," description:"Boards to validate"`
+	Boards []string       `long:"boards" env:"BOARDS" default:"20,21,22,23,24,25" env-delim:"," description:"Boards to validate"`
 	NoOp   bool           `long:"noop" env:"NOOP" description:"If true fake board will be used"`
 	Live   live.Options   `group:"live" namespace:"live" env-namespace:"LIVE"`
 	Replay replay.Options `group:"replay" namespace:"replay" env-namespace:"REPLAY"`
@@ -55,6 +56,9 @@ func realMain(appctx context.Context, opts options) error {
 
 	// convert string to uint8
 	boards := make([]uint8, 0, len(opts.Boards))
+	if strings.Contains(opts.Boards[0], ",") { // case when boards passed as default value
+		opts.Boards = strings.Split(opts.Boards[0], ",")
+	}
 	for _, board := range opts.Boards {
 		decimalValue, err := strconv.ParseInt(board, 16, 8)
 		if err != nil {
