@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 
@@ -33,8 +34,8 @@ type indexContext struct {
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 	ictx, err := s.indexContext(s.mapping)
 	if err != nil {
-		fmt.Fprintf(w, "couldn't build index context: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "couldn't build index context: %v", err)
 		return
 	}
 
@@ -122,7 +123,8 @@ func (s *Server) lightContext(l internal.Light) (*lightContext, error) {
 	if l.Addr.Pin != "" {
 		isOn, err = s.lights.IsOn(l.Addr)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't get status of the light: %w", err)
+			slog.Error("couldn't get status of the light", slog.String("err", err.Error()))
+			return nil, nil
 		}
 	}
 	return &lightContext{

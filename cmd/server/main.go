@@ -70,7 +70,7 @@ func realMain(appctx context.Context, opts options) error {
 	prov = lights.NewTestController(boards)
 
 	if !opts.NoOp {
-		prov, err = lights.NewController("/dev/i2c-0", boards)
+		prov, err = lights.NewController("/dev/i2c-1", boards)
 		if err != nil {
 			return fmt.Errorf("couldn't initiate controller for the boards: %w", err)
 		}

@@ -12,6 +12,7 @@ import (
 type LightsController interface {
 	Set(addr internal.LightAddress, isON bool) error
 	IsOn(addr internal.LightAddress) (bool, error)
+	Reset() error
 }
 
 const (
@@ -48,14 +49,9 @@ func (m *Manual) Start(ctx context.Context) error {
 
 	// switch of all lights
 	slog.Info("swithching off all lights")
-	for _, row := range m.mapping {
-		for _, light := range row {
-			err := m.lights.Set(light.Addr, false)
-
-			if err != nil {
-				return fmt.Errorf("couldn't switch off light '%v': %w", light.Addr, err)
-			}
-		}
+	err := m.lights.Reset()
+	if err != nil {
+		return fmt.Errorf("couldn't reset lights: %w", err)
 	}
 
 	select {

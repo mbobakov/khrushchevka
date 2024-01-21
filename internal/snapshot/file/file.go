@@ -47,6 +47,9 @@ func (j *JSON) Snapshot() error {
 
 	for _, lvl := range j.mapping {
 		for _, light := range lvl {
+			if light.Addr.Pin == "" {
+				continue
+			}
 			isOn, err := j.lights.IsOn(light.Addr)
 			if err != nil {
 				return fmt.Errorf("couldn't get light state for '%v': %w", light.Addr, err)

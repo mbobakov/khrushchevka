@@ -18,6 +18,9 @@ var _ LightsController = &LightsControllerMock{}
 //
 //		// make and configure a mocked LightsController
 //		mockedLightsController := &LightsControllerMock{
+//			ResetFunc: func() error {
+//				panic("mock out the Reset method")
+//			},
 //			SetFunc: func(addr internal.LightAddress, isON bool) error {
 //				panic("mock out the Set method")
 //			},
@@ -28,11 +31,17 @@ var _ LightsController = &LightsControllerMock{}
 //
 //	}
 type LightsControllerMock struct {
+	// ResetFunc mocks the Reset method.
+	ResetFunc func() error
+
 	// SetFunc mocks the Set method.
 	SetFunc func(addr internal.LightAddress, isON bool) error
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// Reset holds details about calls to the Reset method.
+		Reset []struct {
+		}
 		// Set holds details about calls to the Set method.
 		Set []struct {
 			// Addr is the addr argument value.
@@ -41,7 +50,35 @@ type LightsControllerMock struct {
 			IsON bool
 		}
 	}
-	lockSet sync.RWMutex
+	lockReset sync.RWMutex
+	lockSet   sync.RWMutex
+}
+
+// Reset calls ResetFunc.
+func (mock *LightsControllerMock) Reset() error {
+	if mock.ResetFunc == nil {
+		panic("LightsControllerMock.ResetFunc: method is nil but LightsController.Reset was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockReset.Lock()
+	mock.calls.Reset = append(mock.calls.Reset, callInfo)
+	mock.lockReset.Unlock()
+	return mock.ResetFunc()
+}
+
+// ResetCalls gets all the calls that were made to Reset.
+// Check the length with:
+//
+//	len(mockedLightsController.ResetCalls())
+func (mock *LightsControllerMock) ResetCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockReset.RLock()
+	calls = mock.calls.Reset
+	mock.lockReset.RUnlock()
+	return calls
 }
 
 // Set calls SetFunc.

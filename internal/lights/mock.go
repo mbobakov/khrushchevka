@@ -67,3 +67,10 @@ func (c *TestController) Subscribe(ch chan<- internal.PinState) {
 func (c *TestController) Boards() []uint8 {
 	return c.boards
 }
+
+func (c *TestController) Reset() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.state = make(map[internal.LightAddress]bool)
+	return nil
+}

@@ -3,7 +3,7 @@
 {{ range . }}
 <tr>
     {{ range . }}
-    <td {{if .Addr.Pin }}  hx-ext="sse" sse-swap="{{ .ID }}" hx-post="/lights/set" hx-include="this" {{ end }} >
+    <td {{if .Addr }}  hx-ext="sse" sse-swap="{{ .ID }}" hx-post="/lights/set" hx-include="this" {{ end }} >
         {{ template "light.gotmpl" .}}
     </td>
   {{end}}

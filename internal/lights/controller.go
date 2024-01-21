@@ -15,6 +15,7 @@ type ControllerI interface {
 	IsOn(addr internal.LightAddress) (bool, error)
 	Subscribe(chan<- internal.PinState)
 	Boards() []uint8
+	Reset() error
 }
 
 var _ ControllerI = (*Controller)(nil)
@@ -75,4 +76,15 @@ func openMCP23017(addr uint8, i2cBus string) (*mcp23017.MCP23017, error) {
 
 func (c *Controller) Boards() []uint8 {
 	return maps.Keys(c.boards)
+}
+
+func (c *Controller) Reset() error {
+	for _, mcp := range c.boards {
+		err := mcp.Set(mcp23017.AllPins()).LOW()
+		if err != nil {
+			return fmt.Errorf("could not set all pins to low: %w", err)
+		}
+	}
+
+	return nil
 }
