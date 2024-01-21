@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mbobakov/khrushchevka/internal"
+	"golang.org/x/sync/errgroup"
 )
 
 type LightsController interface {
@@ -49,20 +50,6 @@ type Live struct {
 
 //go:generate ../../../bin/moq -out mocks_test.go . LightsController
 func New(l LightsController, mapping [][]internal.Light, opts Options) *Live {
-	// serviceLights := []*internal.Light{}
-	// for _, l := range mapping {
-	// 	for _, f := range l {
-	// 		f := f
-	// 		if f.Kind == internal.LightTypeServiceNoManLand {
-
-	// 			serviceLights = append(serviceLights, &f)
-	// 		}
-	// 		if f.Number != 0 {
-	// 			flats[f.Number] = struct{}{}
-	// 		}
-	// 	}
-	// }
-
 	return &Live{
 		lights:  l,
 		opts:    opts,
@@ -78,11 +65,11 @@ func (l *Live) Name() string {
 }
 
 func (l *Live) serviceOn(ctx context.Context, sig <-chan struct{}, ttl time.Duration) error {
-	allServiceLights := []*internal.Light{}
+	allServiceLights := []internal.LightAddress{}
 	for _, l := range l.mapping {
 		for _, f := range l {
 			if f.Kind == internal.LightTypeServiceNoManLand {
-				allServiceLights = append(allServiceLights, &f)
+				allServiceLights = append(allServiceLights, f.Addr)
 			}
 		}
 	}
@@ -93,9 +80,9 @@ func (l *Live) serviceOn(ctx context.Context, sig <-chan struct{}, ttl time.Dura
 		case <-sig:
 			// switch on all service lights
 			for _, v := range allServiceLights {
-				err := l.lights.Set(v.Addr, true)
+				err := l.lights.Set(v, true)
 				if err != nil {
-					return fmt.Errorf("couldn't switch on light '%v': %w", v.Addr, err)
+					return fmt.Errorf("couldn't switch on light '%v': %w", v, err)
 				}
 			}
 			t.Reset(ttl)
@@ -104,9 +91,9 @@ func (l *Live) serviceOn(ctx context.Context, sig <-chan struct{}, ttl time.Dura
 		case <-t.C:
 			// switch off all service lights
 			for _, v := range allServiceLights {
-				err := l.lights.Set(v.Addr, false)
+				err := l.lights.Set(v, false)
 				if err != nil {
-					return fmt.Errorf("couldn't switch off light '%v': %w", v.Addr, err)
+					return fmt.Errorf("couldn't switch off light '%v': %w", v, err)
 				}
 			}
 
@@ -176,13 +163,11 @@ func (l *Live) mainCycle(ctx context.Context) error {
 		}
 	}
 
-	// Start Service lights listener
-	go func() {
-		err := l.serviceOn(ctx, serviceOnChan, l.opts.ServiceTTL)
-		if err != nil {
-			l.log.Error("couldn't process service on cycle", slog.Any("err", err))
-		}
-	}()
+	// make error group to wait for all goroutines
+	group, ctx := errgroup.WithContext(ctx)
+
+	// Start service lights
+	group.Go(func() error { return l.serviceOn(ctx, serviceOnChan, l.opts.ServiceTTL) })
 
 	for {
 		l.log.Info("next flat selection in", slog.Duration("duration", nextFlatSelectionIn))
@@ -215,21 +200,24 @@ func (l *Live) mainCycle(ctx context.Context) error {
 
 			serviceOnChan <- struct{}{}
 
-			go func(flat int) {
-				err := l.flatCycle(ctx, flat)
+			// start the flat routine
+			group.Go(func() error {
+				err := l.flatCycle(ctx, group, selectedFlat)
 				if err != nil {
-					l.log.Error("couldn't process flat cycle", slog.Int("flat", flat), slog.Any("err", err))
+					l.log.Error("couldn't process flat cycle", slog.Int("flat", selectedFlat), slog.Any("err", err))
+					return fmt.Errorf("couldn't process flat cycle: %w", err)
 				}
-				delete(onGoing, flat)
-			}(selectedFlat)
+
+				delete(onGoing, selectedFlat)
+				return nil
+			})
 
 			nextFlatSelectionIn = randomizeDuration(l.rand, l.opts.MaxDelay, 0.4)
-
 		}
 	}
 }
 
-func (l *Live) flatCycle(ctx context.Context, flat int) error {
+func (l *Live) flatCycle(ctx context.Context, group *errgroup.Group, flat int) error {
 	flatWindows := []internal.LightAddress{}
 
 	for _, l := range l.mapping {
@@ -247,12 +235,9 @@ func (l *Live) flatCycle(ctx context.Context, flat int) error {
 		schedule := getWindowSchedule(l.rand, l.opts.FlatTTL, l.opts.MaxChanges)
 		l.log.Info("window schedule", slog.Int("flat", flat), slog.Any("addr", fw), slog.String("schedule", schedule.String()))
 
-		go func(addr internal.LightAddress) {
-			err := l.executeScheduleFor(ctx, schedule, addr)
-			if err != nil {
-				l.log.Error("couldn't process window cycle", slog.Int("flat", flat), slog.Int("board", int(addr.Board)), slog.String("pin", addr.Pin), slog.Any("err", err))
-			}
-		}(fw)
+		fw := fw
+		// Start window routine
+		group.Go(func() error { return l.executeScheduleFor(ctx, schedule, fw) })
 	}
 
 	for {
